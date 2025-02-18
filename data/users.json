@@ -1,0 +1,6 @@
+{
+    "admin": {
+        "u": "admin",
+        "p": "scrypt:32768:8:1$610LCloei0pKaIUr$152ad9603bf6b3d320d13b529ab33638ba8f6a7a79d3b9cdef44be3ff1d1bf41b5f68dbdb988ad50ee79105c0e51924b370d912580e5351e57d6baaf413821de"
+    }
+}

@@ -1,0 +1,5 @@
+Flask==2.3.2
+Flask-HTTPAuth==4.7.0
+yt-dlp==2023.3.4
+Werkzeug==2.3.3
+mutagen==1.46.0

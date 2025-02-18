@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Downloader</title>
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: rgb(195, 194, 194);
+        }
+
+        input,
+        select,
+        button {
+            margin: 5px 0;
+            width: 100%;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+
+        #progress-container {
+            margin-top: 20px;
+            height: 400px;
+        }
+
+        #result {
+            margin-top: 20px;
+            height: 50px;
+        }
+
+        #progress-container {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #292929;
+            padding: 10px;
+            background-color: #d2d2d2;
+            height: 400px;
+        }
+
+        #logo {
+            max-width: 200px;
+            height: auto;
+            display: block;
+            margin: 0 auto 20px;
+        }
+
+        #new_subfolder_input {
+            display: none;
+        }
+
+        .collapsible-content {
+            display: none;
+            padding: 10px;
+            border: 1px solid #ccc;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+        }
+
+        .toggle-button {
+            width: 100%;
+            padding: 10px;
+            text-align: center;
+            background-color: #0066ff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+
+        .toggle-button:hover {
+            background-color: #0056b3;
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <h1>YouTube Downloader</h1>
+    <img id="logo" src="{{ url_for('static', filename='logo.png') }}" alt="Logo">
+    <hr>
+    <button onclick="changeLanguage('de')">
+        <img src="{{ url_for('static', filename='de.png') }}" alt="DE"
+            style="height: 16px; vertical-align: middle; margin-right: 5px;">
+        Deutsch
+    </button>
+    <button onclick="changeLanguage('en')">
+        <img src="{{ url_for('static', filename='en.png') }}" alt="EN"
+            style="height: 16px; vertical-align: middle; margin-right: 5px;">
+        English
+    </button>
+
+    <button id="logout">
+        <img src="{{ url_for('static', filename='logout.png') }}" alt="Logout"
+            style="height: 16px; vertical-align: middle; margin-right: 5px;">
+        Sign Out
+    </button>
+
+    <hr>
+    <h1 id="welcome">{{ translations.welcome }}</h1>
+    <p id="instruction">
+        {{ translations.instruction }}
+    </p>
+    <hr>
+
+    <h3 id="warning">{{ translations.warning }}</h3>
+    <p id="warning_text">
+        {{ translations.warning_text }}
+    </p>
+    <hr>
+    <h3 id="instructions_title">{{ translations.instructions_title }}</h3>
+    <button class="toggle-button" id="show_instructions">📖 {{ translations.show_instructions }}</button>
+    <div class="collapsible-content">
+        <ol>
+            <li id="step1">{{ translations.step1 }}</li><br>
+            <li id="step2">{{ translations.step2 }}</li><br>
+            <li id="step3">{{ translations.step3 }}</li><br>
+            <li id="step4">{{ translations.step4 }}</li><br>
+            <li id="step5">{{ translations.step5 }}</li><br>
+            <li id="step6">{{ translations.step6 }}</li>
+        </ol>
+        <p id="note">{{ translations.note }}</p>
+        <p id="playlist_note">{{ translations.playlist_note }}</p>
+        <p id="retrieve_info">{{ translations.retrieve_info }}</p>
+        <hr>
+
+        <h3 id="questions">{{ translations.questions }}</h3>
+        <p id="contact">{{ translations.contact }}</p>
+        <p id="copy_note">{{ translations.copy_note }}</p>
+    </div>
+    <hr>
+
+    <h3 id="current_time_title" style="text-align: center;">{{ translations.current_time_title }}</h3>
+    <p id="current-time" style="text-align: center; font-size: 1.2em; font-weight: bold;">
+        🕒 <span></span>
+    </p>
+
+    <hr>
+    <p id="cache_title">{{ translations.cache_title }}</p>
+    <label style="display: inline-flex; align-items: left; gap: 15px; white-space: nowrap;">
+    <input type="checkbox" id="use_cache"> <span>Use Cache</span>
+    </label>
+    <p id="cache_note">{{ translations.cache_note }}</p>
+    <hr>    
+
+    <p><strong>YouTube URL:</strong></p>
+    <input type="text" id="url" placeholder="YouTube URL Here">
+    <hr>
+    <p id="folder_title"><strong>{{ translations.folder }}</strong></p>
+    <select id="folder">
+        <option value="admin">Admin</option>
+    </select>
+    <hr>
+    <p id="format_title"><strong>{{ translations.format_type }}</strong></p>
+    <select id="format_type">
+        <option value="mp3">MP3</option>
+        <option value="mp4">MP4</option>
+    </select>
+    <hr>
+    <p id="custom_filename_title"><strong>{{ translations.custom_filename }}</strong></p>
+    <input type="text" id="custom_filename" placeholder="Filename Here">
+    <hr>
+    <p id="subfolder_title"><strong>{{ translations.subfolder }}</strong></p>
+    <select id="subfolder">
+        <option value="">Choose:</option>
+    </select>
+    <input type="text" id="new_subfolder_input" placeholder="New Foldername Here">
+    <hr>
+    <button id="download">{{ translations.buttons.start_download }}</button>
+    <button id="cancel" style="display: none;">{{ translations.buttons.cancel_download }}</button>
+    <hr>
+    <p><strong>Output/Progress Box:</strong></p>
+    <button id="copy-button">{{ translations.buttons.copy_clipboard }}</button>
+    <button id="clear-button">{{ translations.buttons.clear_output }}</button>
+    <div id="progress-container"></div>
+    <div id="result"></div>
+
+    <hr>
+    <h3 id="disclaimer_title"><strong>{{ translations.disclaimer_title }}</strong></h3>
+    <p id="disclaimer">{{ translations.disclaimer_text }}</p>
+    <hr>
+
+    <script>
+
+        // Clock
+        function updateClock() {
+            var now = new Date();
+            var timeString = now.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            document.querySelector("#current-time span").textContent = timeString;
+        }
+
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // Translations
+        async function loadTranslations(lang) {
+            try {
+                const response = await fetch(`/lang/${lang}.json`);
+                if (!response.ok) {
+                    throw new Error(`Failed to load language file: ${lang}.json`);
+                }
+                return await response.json();
+            } catch (error) {
+                console.error("Error loading translations:", error);
+                return {};
+            }
+        }
+
+        async function changeLanguage(lang) {
+            const translations = await loadTranslations(lang);
+
+            document.querySelector('#welcome').innerText = translations.welcome;
+            document.querySelector('#instruction').innerHTML = translations.instruction;
+
+            document.querySelector('#warning').innerText = translations.warning;
+            document.querySelector('#warning_text').innerHTML = translations.warning_text;
+
+            document.querySelector('#instructions_title').innerText = translations.instructions_title;
+            document.querySelector('#show_instructions').innerText = translations.show_instructions;
+            document.querySelector('#step1').innerHTML = translations.step1;
+            document.querySelector('#step2').innerHTML = translations.step2;
+            document.querySelector('#step3').innerHTML = translations.step3;
+            document.querySelector('#step4').innerHTML = translations.step4;
+            document.querySelector('#step5').innerHTML = translations.step5;
+            document.querySelector('#step6').innerHTML = translations.step6;
+            document.querySelector('#note').innerHTML = translations.note;
+            document.querySelector('#playlist_note').innerHTML = translations.playlist_note;
+            document.querySelector('#retrieve_info').innerHTML = translations.retrieve_info;
+
+            document.querySelector('#questions').innerText = translations.questions;
+            document.querySelector('#contact').innerHTML = translations.contact;
+            document.querySelector('#copy_note').innerHTML = translations.copy_note;
+            document.querySelector('#cache_title').innerHTML = `${translations.cache_title}`;
+            document.querySelector('#cache_note').innerHTML = `${translations.cache_note}`;
+
+            document.querySelector('#current_time_title').innerText = translations.current_time_title;
+
+            document.querySelector('#folder_title').innerHTML = `${translations.folder}`;
+            document.querySelector('#format_title').innerHTML = `${translations.format_type}`;
+            document.querySelector('#custom_filename_title').innerHTML = `${translations.custom_filename}`;
+            document.querySelector('#subfolder_title').innerHTML = `${translations.subfolder}`;
+
+            document.querySelector('#download').innerText = translations.buttons.start_download;
+            document.querySelector('#cancel').innerText = translations.buttons.cancel_download;
+            document.querySelector('#copy-button').innerText = translations.buttons.copy_clipboard;
+            document.querySelector('#clear-button').innerText = translations.buttons.clear_output;
+
+            document.querySelector('#disclaimer_title').innerHTML = `${translations.disclaimer_title}`;
+            document.querySelector('#disclaimer').innerHTML = translations.disclaimer_text;
+        }
+
+        $(document).ready(function () {
+            changeLanguage('en');
+
+            var eventSource;
+
+            $(".toggle-button").click(function () {
+                $(this).next(".collapsible-content").slideToggle();
+            });
+
+            $('#logout').click(function () {
+                $.ajax({
+                    url: '/logout',
+                    method: 'GET',
+                    success: function () {
+                        alert('You have been logged out.');
+                        location.reload();
+                    },
+                    error: function () {
+                        alert('Logout failed.');
+                    }
+                });
+            });
+
+            $('#folder').change(function () {
+                var folder = $(this).val();
+                $.ajax({
+                    url: '/get_subfolders',
+                    method: 'POST',
+                    data: { folder: folder },
+                    success: function (subfolders) {
+                        var options = '<option value="">Choose:</option>';
+                        subfolders.forEach(function (subfolder) {
+                            options += '<option value="' + subfolder + '">' + subfolder + '</option>';
+                        });
+                        $('#subfolder').html(options);
+                    }
+                });
+            });
+
+            $('#subfolder').change(function () {
+                if ($(this).val() === 'New') {
+                    $('#new_subfolder_input').show();
+                } else {
+                    $('#new_subfolder_input').hide();
+                }
+            });
+
+            $('#download').click(function () {
+                var url = $('#url').val();
+                var folder = $('#folder').val();
+                var custom_filename = $('#custom_filename').val();
+                var format_type = $('#format_type').val();
+                var subfolder = $('#subfolder').val();
+                var new_subfolder = $('#new_subfolder_input').val();
+                var use_cache = $('#use_cache').is(':checked');
+
+                if (subfolder === 'New' && !new_subfolder) {
+                    alert('Bitte geben Sie einen Namen für den neuen Unterordner ein.');
+                    return;
+                }
+
+                $('#progress-container').empty();
+                $('#result').text('');
+                $('#download').prop('disabled', true);
+                $('#cancel').show();
+
+                $.ajax({
+                    url: '/download',
+                    method: 'POST',
+                    data: {
+                        url: url,
+                        folder: folder,
+                        custom_filename: custom_filename,
+                        format_type: format_type,
+                        subfolder: subfolder,
+                        new_subfolder: new_subfolder,
+                        use_cache: use_cache
+                    },
+                    success: function (response) {
+                        if (eventSource) {
+                            eventSource.close();
+                        }
+                        eventSource = new EventSource('/progress');
+                        eventSource.onmessage = function (event) {
+                            $('#progress-container').append('<div>' + event.data + '</div>');
+                            $('#progress-container').scrollTop($('#progress-container')[0].scrollHeight);
+                            if (event.data.includes('Download completed') || event.data.includes('Download failed') || event.data.includes('cant be downloaded') || event.data.includes('All videos are already downloaded')) {
+                                $('#download').prop('disabled', false);
+                                $('#cancel').hide();
+                                eventSource.close();
+                            }
+                        };
+                    },
+                    error: function (xhr) {
+                        $('#progress-container').append('<div>Error: ' + xhr.responseJSON.error + '</div>');
+                        $('#download').prop('disabled', false);
+                        $('#cancel').hide();
+                    }
+                });
+            });
+
+            $('#cancel').click(function () {
+                $('#progress-container').append('<div>🚫 Cancelling...</div>');
+
+                $.ajax({
+                    url: '/cancel',
+                    method: 'POST',
+                    success: function (response) {
+                        $('#progress-container').append('<div>' + response.message + '</div>');
+                        $('#download').prop('disabled', false);
+                        $('#cancel').hide();
+                        if (eventSource) {
+                            eventSource.close();
+                        }
+                    },
+                    error: function (xhr) {
+                        $('#progress-container').append('<div>⚠️ Error stopping download: ' + xhr.responseJSON.error + '</div>');
+                    }
+                });
+            });
+
+            $('#folder').trigger('change');
+            $('#copy-button').click(function () {
+                var progressHTML = $('#progress-container').html().trim();
+
+                if (!progressHTML) {
+                    alert('Die Box ist leer, es gibt nichts zu kopieren!');
+                    return;
+                }
+
+                var progressText = progressHTML.replace(/<div[^>]*>/gi, "")
+                    .replace(/<\/div>/gi, "\n");
+
+                console.log(progressText);
+
+                navigator.clipboard.writeText(progressText)
+                    .then(function () {
+                        alert('Fortschritt in die Zwischenablage kopiert!');
+                    })
+                    .catch(function (err) {
+                        console.error('Fehler beim Kopieren: ', err);
+                        $('#error-message').text('Fehler beim Kopieren in die Zwischenablage').show();
+                    });
+            });
+
+            $('#clear-button').click(function () {
+                $('#progress-container').empty();
+            });
+        });
+    </script>
+</body>
+
+</html>
