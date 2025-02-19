@@ -9,7 +9,7 @@ This is a mostly private project created to simplify adding and managing music o
 1. Clone the repository:
 ```
 git clone https://github.com/w0lfzk1n/yt_dlp-WebGui.git
-cd yt_dlp_webgui
+cd yt_dlp_WebGui
 ```
 
 2. Install requirements:
