@@ -39,6 +39,9 @@ pip install -r requirements.txt
     ```
 
 6. Use a browser extension to extract cookies for YouTube into a text file:
+
+*You don't have to use cookies, but it is recommended to do so, since youtube will block access when you are flagged as potential bot.*
+
 - See [yt-dlp wiki](https://github.com/yt-dlp/yt-dlp/wiki/Extractors#exporting-youtube-cookies)
 - Or use [Get cookies.txt LOCALLY](https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc)
 - Save the cookie file as `data/cookies.txt`
