@@ -254,9 +254,9 @@ def update_metadata(username, file_path, album):
             audio.tags["\xa9alb"] = [album]
             audio.tags["aART"] = [album]
             audio.save()
-        print(f"✅ Updated metadata for: {file_path}")
+        log_message(f"✅ Updated metadata for: {file_path}")
     except Exception as e:
-        print(f"Fehler beim Aktualisieren der Metadaten für {file_path}: {e}")
+        log_message(f"❌ Error while updating metadata for {file_path}: {e}")
         if file_path.endswith(".mp3") and fix_mp3(file_path):
             update_metadata(username, file_path, album)
 
@@ -508,12 +508,13 @@ def download_task(
 
         existing_files = set(os.listdir(target_folder))
 
+        use_cookies = os.path.exists(COOKIES) and os.path.getsize(COOKIES) > 0
+
         ydl_opts = {
             "outtmpl": os.path.join(output_path, "%(title)s.%(ext)s"),
             "socket_timeout": 60,
             "no_cache_dir": True,
             "progress_hooks": [my_hook],
-            "cookiefile": COOKIES,
             "flat_playlist": True,
             "ignoreerrors": True,
             "retries": 5,
@@ -535,6 +536,9 @@ def download_task(
             ],
             "addmetadata": True,
         }
+
+        if use_cookies:
+            ydl_opts["cookiefile"] = COOKIES
 
         if format_type == "mp3":
             ydl_opts["format"] = "bestaudio/best"
@@ -614,7 +618,7 @@ def download_task(
                 videos_existing = []
 
                 # Check for available and unavailable videos before starting the download
-                if "entries" in info:  # Playlist
+                if info and "entries" in info:  # Playlist
                     for entry in info["entries"]:
                         if entry:
                             if entry.get("availability", "") == "unavailable":
@@ -703,7 +707,7 @@ def download_task(
                 is_converting = False
 
                 album_name = os.path.basename(target_folder)
-
+                log_message("⚒ Managing Metadata", True)
                 for final_filename in expected_files:
                     cleaned_filename = clean_filename(os.path.basename(final_filename))
                     if os.path.exists(final_filename):
@@ -766,9 +770,7 @@ def download_task(
             else:
                 cookie_error = ""
                 if "format cookies file" in str(e):
-                    cookie_error = (
-                        "<br>🍪 Cookies are missing or invalid. Please check your data/cookies.txt file."
-                    )
+                    cookie_error = "<br>🍪 Cookies are missing or invalid. Please check your data/cookies.txt file."
                 log_message(f"⚠️ INFO ⚠️ Error:<br>{str(e)}{cookie_error}", True, True)
                 return {"error": str(e)}
 
