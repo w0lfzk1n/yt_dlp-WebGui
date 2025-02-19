@@ -71,6 +71,16 @@ python app.py
 - **Logging:** Provides log output in a box on the webapp and in the `logs/` folder.
 - **Interpret and Album:** Inserts the set output folder name into the metadata as "Interpret" and "Album" to assist with media server sorting.
 
+## Screenshots
+
+![](images/show_1.png)
+
+![](images/show_2.png)
+
+![](images/show_3.png)
+
+![](images/show_4.png)
+
 ## Disclaimer
 
 There are more feature-rich and actively maintained projects on GitHub for similar purposes. This project is primarily for personal use and may not be actively continued.
