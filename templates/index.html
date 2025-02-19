@@ -319,7 +319,7 @@
                 var use_cache = $('#use_cache').is(':checked');
 
                 if (subfolder === 'New' && !new_subfolder) {
-                    alert('Bitte geben Sie einen Namen für den neuen Unterordner ein.');
+                    alert('Please input a name for the subfolder!.');
                     return;
                 }
 
@@ -388,7 +388,7 @@
                 var progressHTML = $('#progress-container').html().trim();
 
                 if (!progressHTML) {
-                    alert('Die Box ist leer, es gibt nichts zu kopieren!');
+                    alert('Output-Container is empty, noting to copy here!');
                     return;
                 }
 
@@ -399,11 +399,11 @@
 
                 navigator.clipboard.writeText(progressText)
                     .then(function () {
-                        alert('Fortschritt in die Zwischenablage kopiert!');
+                        alert('Copied to Clipboard!');
                     })
                     .catch(function (err) {
-                        console.error('Fehler beim Kopieren: ', err);
-                        $('#error-message').text('Fehler beim Kopieren in die Zwischenablage').show();
+                        console.error('Error while copy: ', err);
+                        $('#error-message').text('Error while copy').show();
                     });
             });
 
