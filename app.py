@@ -497,6 +497,8 @@ def download_task(
         else:
             target_folder = os.path.join(base_path, subfolder)
 
+        log_message(f"📂 Folder set: {target_folder}")
+
         os.makedirs(target_folder, exist_ok=True)
         output_path = os.path.join(OUTPUT_DIR, username)
         os.makedirs(output_path, exist_ok=True)
@@ -707,7 +709,7 @@ def download_task(
                 is_converting = False
 
                 album_name = os.path.basename(target_folder)
-                log_message("⚒ Managing Metadata", True)
+                log_message(f"<br>{20*'-'}<br>⚒ Managing Metadata", True)
                 for final_filename in expected_files:
                     cleaned_filename = clean_filename(os.path.basename(final_filename))
                     if os.path.exists(final_filename):
