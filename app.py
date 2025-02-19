@@ -709,7 +709,7 @@ def download_task(
                 is_converting = False
 
                 album_name = os.path.basename(target_folder)
-                log_message(f"<br>{20*'-'}<br>⚒ Managing Metadata", True)
+                log_message(f"⚒ Managing Metadata<br>{20*'-'}<br>", True)
                 for final_filename in expected_files:
                     cleaned_filename = clean_filename(os.path.basename(final_filename))
                     if os.path.exists(final_filename):
