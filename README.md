@@ -18,7 +18,15 @@ pip install -r requirements.txt
 ```
 
 
-3. (Optional) Run `manage_app_users.py` to add a new user or change the default password.
+3. (Optional) Run `python manage_app_users.py` to add a new user or change the default password.
+
+*You dont have to add a new user, for local usage you can just use the default `admin` user.
+
+**Default Credentials:**
+
+- Username: `admin`
+- Password: `admin`
+
 - If a new user is added, complete the following steps:
   - Edit the user list in `templates/index.html`. Search for "Admin" and add a new `<option>` for the new user. The `value` must be the username:
     ```
