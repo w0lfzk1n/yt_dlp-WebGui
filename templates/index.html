@@ -359,8 +359,6 @@
                             if (event.data.includes('Download completed') || event.data.includes('Download failed') || event.data.includes('cant be downloaded')) {
                                 $('#download').prop('disabled', false);
                                 $('#cancel').hide();
-                                $('#new_subfolder_input').hide();
-                                $('#subfolder').val('');
                                 $('#custom_filename').val('');
                                 eventSource.close();
                                 eventSource.close();

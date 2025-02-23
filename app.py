@@ -59,6 +59,10 @@ folder_paths = {}
 to_download = 0
 done_download = 1
 conv_heart = None
+complete_msg = ""
+moved_files = []
+missing_files = []
+unavailable_videos = []
 
 # --- Logging Setup ---
 os.makedirs(LOGS_DIR, exist_ok=True)
@@ -184,15 +188,18 @@ def send_conv_heartbeat():
 
 
 def set_owner_recursive(path, user, group):
-    for root, dirs, files in os.walk(path):
-        for d in dirs:
-            shutil.chown(os.path.join(root, d), user, group)
-            os.chmod(os.path.join(root, d), 0o775)
-        for f in files:
-            shutil.chown(os.path.join(root, f), user, group)
-            os.chmod(os.path.join(root, f), 0o664)
-    shutil.chown(path, user, group)
-    os.chmod(path, 0o775)
+    try:
+        for root, dirs, files in os.walk(path):
+            for d in dirs:
+                shutil.chown(os.path.join(root, d), user, group)
+                os.chmod(os.path.join(root, d), 0o775)
+            for f in files:
+                shutil.chown(os.path.join(root, f), user, group)
+                os.chmod(os.path.join(root, f), 0o664)
+        shutil.chown(path, user, group)
+        os.chmod(path, 0o775)
+    except Exception as e:
+        log_message(f"Error while setting permissions: {e}")
 
 
 def clear_output_folder(folder):
@@ -442,7 +449,10 @@ def download():
     time.sleep(0.3)
     username = auth.current_user()
     def process_downloads_sequentially(urls, folder, custom_filename, format_type, subfolder, username, use_cache, app):
-        global complete_msg
+        global complete_msg, moved_files, missing_files, unavailable_videos
+        moved_files = []
+        missing_files = []
+        unavailable_videos = []
         complete_msg = ''
         for i, url in enumerate(urls, start=1):
             log_message(f"🔹 [{i}/{len(urls)}] Start Download for:<br>{url}", True, True)
@@ -453,6 +463,15 @@ def download():
             )
             thread.start()
             thread.join()
+
+        if moved_files:
+            complete_msg += f"✅ Download completed:<br>{'<br>'.join(moved_files)}<br>Total: {len(moved_files)}<br>"
+        if missing_files:
+            complete_msg += f"<br>❓ Download failed:<br>{'<br>'.join(missing_files)}<br>Total: {len(missing_files)}<br>"
+        if unavailable_videos:
+            complete_msg += f"<br>❌ There are <strong>{len(unavailable_videos)}</strong> Videos that cant be downloaded.<br>"
+            
+
         my_hook({"status": "complete", "msg": complete_msg})
 
     threading.Thread(
@@ -497,7 +516,7 @@ def download_task(
     url, folder, custom_filename, format_type, subfolder, username, use_cache, app
 ):
     with app.app_context():
-        global current_download, cancel_flag, is_converting, last_percentage, to_download, done_download, complete_msg
+        global current_download, cancel_flag, is_converting, last_percentage, to_download, done_download, complete_msg, moved_files, missing_files, unavailable_videos
         time.sleep(0.2)
         log_message(f"URL set: {url}")
         time.sleep(0.2)
@@ -625,10 +644,7 @@ def download_task(
                     save_to_cache(url, info)
 
                 available_videos = []
-                unavailable_videos = []
                 expected_files = []
-                moved_files = []
-                missing_files = []
 
                 videos_to_download = []
                 videos_existing = []
@@ -754,14 +770,6 @@ def download_task(
                 set_owner_recursive(target_folder, "carn1v0re", "bunk3rGroup")
                 clear_output_folder(output_path)
 
-                if moved_files:
-                    complete_msg += f"✅ Download completed:<br>{'<br>'.join(moved_files)}<br>Total: {len(moved_files)}<br>"
-                if missing_files:
-                    complete_msg += f"<br>❓ Download failed:<br>{'<br>'.join(missing_files)}<br>Total: {len(missing_files)}<br>"
-                if unavailable_videos:
-                    complete_msg += f"<br>❌ There are <strong>{len(unavailable_videos)}</strong> Videos that cant be downloaded.<br>"
-
-                my_hook({"status": "complete", "msg": complete_msg})
                 current_download = None
                 last_percentage = None
                 to_download = 0
