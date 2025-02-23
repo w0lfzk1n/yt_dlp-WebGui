@@ -710,7 +710,7 @@ def download_task(
                 if videos_existing:
                     info_msg += f"<br><br>🆗 There are <strong>{len(videos_existing)}</strong> Videos that are already downloaded."
                 if unavailable_videos:
-                    info_msg += f"<br><br>❌ There are <strong>{len(unavailable_videos)}</strong> Videos that can not be downloaded."
+                    info_msg += f"<br><br>❌ There are <strong>{len(unavailable_videos)}</strong> Videos that can not be downloaded.<br>"
 
                 time.sleep(0.2)
                 log_message(info_msg, True, True)
@@ -759,7 +759,7 @@ def download_task(
                 if missing_files:
                     complete_msg += f"<br>❓ Download failed:<br>{'<br>'.join(missing_files)}<br>Total: {len(missing_files)}<br>"
                 if unavailable_videos:
-                    complete_msg += f"<br>❌ There are <strong>{len(unavailable_videos)}</strong> Videos that cant be downloaded."
+                    complete_msg += f"<br>❌ There are <strong>{len(unavailable_videos)}</strong> Videos that cant be downloaded.<br>"
 
                 my_hook({"status": "complete", "msg": complete_msg})
                 current_download = None
