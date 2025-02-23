@@ -297,10 +297,11 @@ def load_from_cache(url):
     return None
 
 
-def my_retry_sleep(retry_count, last_error=None, n=None):
+def my_retry_sleep(last_error=None, n=None):
     """
     Returns the sleep time before retrying and logs the reason.
     """
+    retry_count = n
     base_sleep = min(10 * (2 ** (retry_count - 1)), 60)
     sleep_time = base_sleep
 
