@@ -45,6 +45,9 @@ CACHE_DIR = os.path.join(os.getcwd(), "cache")
 FOLDERS_FILE = os.path.join(datafolder, "folders.json")
 COOKIES = os.path.join(datafolder, "cookies.txt")
 LOGS_DIR = "logs"
+# The user and group the files should be assigned to for file/folder permissions
+PERM_USER = "carn1v0re"
+PERM_GROUP = "bunk3rGroup"
 
 # Globals
 current_download = None
@@ -270,6 +273,8 @@ def get_cache_filename(url):
 def save_to_cache(url, info):
     """Save the retrieved info to a JSON cache file."""
     cache_file = get_cache_filename(url)
+    cache_hash = os.path.basename(cache_file).replace(".json", "")
+    log_message(f"💾 Cached Hash: {cache_hash}")
     with open(cache_file, "w", encoding="utf-8") as f:
         json.dump({"url": url, "info": info}, f, indent=4)
 
@@ -278,6 +283,8 @@ def load_from_cache(url):
     """Load cached info if it exists."""
     cache_file = get_cache_filename(url)
     if os.path.exists(cache_file):
+        cache_hash = os.path.basename(cache_file).replace(".json", "")
+        log_message(f"💾 Cached Hash: {cache_hash}")
         with open(cache_file, "r", encoding="utf-8") as f:
             return json.load(f)["info"]
     return None
@@ -397,15 +404,17 @@ def serve_lang_json(lang):
 def download():
     global cancel_flag
     cancel_flag = False
-    url = request.form["url"]
+    urls = request.form["url"].strip().split("\n")
+    urls = [url.strip() for url in urls if url.strip()]
     folder = request.form["folder"]
     custom_filename = request.form["custom_filename"]
     format_type = request.form["format_type"]
     subfolder = request.form["subfolder"]
     use_cache = request.form["use_cache"]
 
-    if not is_valid_youtube_url(url):
-        return jsonify({"error": "Invalid YouTube-URL! ⚠️"}), 400
+    invalid_urls = [url for url in urls if not is_valid_youtube_url(url)]
+    if invalid_urls:
+        return jsonify({"error": f"Invalid URLs found: {', '.join(invalid_urls)}"}), 400
     if folder not in folder_paths:
         return jsonify({"error": "Invalid folder selected! ⚠️"}), 400
     if format_type not in ["mp3", "mp4"]:
@@ -416,14 +425,14 @@ def download():
     if subfolder == "New":
         subfolder = request.form["new_subfolder"]
 
-    if is_playlist(url):
-        if not subfolder:
-            return jsonify({"error": "Playlists require a subfolder! ⚠️"}), 400
-        if request.form.get("custom_filename"):
-            return (
-                jsonify({"error": "Playlist do not support custom filenames! ⚠️"}),
-                400,
-            )
+    playlist_urls = [url for url in urls if is_playlist(url)]
+    if playlist_urls and not subfolder:
+        return jsonify({"error": "Playlists require a subfolder! ⚠️"}), 400
+
+    if playlist_urls and request.form.get("custom_filename"):
+        return jsonify({"error": "Playlists do not support custom filenames! ⚠️"}), 400
+
+    log_message(f"❇️ Received {len(urls)} YouTube URLs", True)
 
     log_message(
         f"Preparing download...<br>⚠️ INFO ⚠️<br>Site can be closed, process will complete in background.",
@@ -432,20 +441,25 @@ def download():
     )
     time.sleep(0.3)
     username = auth.current_user()
-    thread = threading.Thread(
-        target=download_task,
-        args=(
-            url,
-            folder,
-            custom_filename,
-            format_type,
-            subfolder,
-            username,
-            use_cache,
-            current_app._get_current_object(),
-        ),
-    )
-    thread.start()
+    def process_downloads_sequentially(urls, folder, custom_filename, format_type, subfolder, username, use_cache, app):
+        global complete_msg
+        complete_msg = ''
+        for i, url in enumerate(urls, start=1):
+            log_message(f"🔹 [{i}/{len(urls)}] Starte Download für:<br>{url}", True, True)
+
+            thread = threading.Thread(
+                target=download_task,
+                args=(url, folder, custom_filename, format_type, subfolder, username, use_cache, app),
+            )
+            thread.start()
+            thread.join()
+        my_hook({"status": "complete", "msg": complete_msg})
+
+    threading.Thread(
+        target=process_downloads_sequentially,
+        args=(urls, folder, custom_filename, format_type, subfolder, username, use_cache, current_app._get_current_object()),
+        daemon=True
+    ).start()
 
     return jsonify({"success": True, "message": "Download started..."})
 
@@ -483,7 +497,7 @@ def download_task(
     url, folder, custom_filename, format_type, subfolder, username, use_cache, app
 ):
     with app.app_context():
-        global current_download, cancel_flag, is_converting, last_percentage, to_download, done_download
+        global current_download, cancel_flag, is_converting, last_percentage, to_download, done_download, complete_msg
         time.sleep(0.2)
         log_message(f"URL set: {url}")
         time.sleep(0.2)
@@ -740,7 +754,6 @@ def download_task(
                 set_owner_recursive(target_folder, "carn1v0re", "bunk3rGroup")
                 clear_output_folder(output_path)
 
-                complete_msg = ""
                 if moved_files:
                     complete_msg += f"✅ Download completed:<br>{'<br>'.join(moved_files)}<br>Total: {len(moved_files)}<br>"
                 if missing_files:

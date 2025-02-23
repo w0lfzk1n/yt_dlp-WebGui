@@ -157,7 +157,9 @@
     <hr>    
 
     <p><strong>YouTube URL:</strong></p>
-    <input type="text" id="url" placeholder="YouTube URL Here">
+    <p id="yturl_note">{{ translations.yturl_note }}</p>
+    <textarea id="url" placeholder="YouTube URLs Here" rows="2" 
+    style="width:100%; resize:none; font-size: 16px; padding: 8px;"></textarea>
     <hr>
     <p id="folder_title"><strong>{{ translations.folder }}</strong></p>
     <select id="folder">
@@ -248,6 +250,7 @@
 
             document.querySelector('#current_time_title').innerText = translations.current_time_title;
 
+            document.querySelector('#yturl_note').innerHTML = `${translations.yturl_note}`;
             document.querySelector('#folder_title').innerHTML = `${translations.folder}`;
             document.querySelector('#format_title').innerHTML = `${translations.format_type}`;
             document.querySelector('#custom_filename_title').innerHTML = `${translations.custom_filename}`;
@@ -261,6 +264,11 @@
             document.querySelector('#disclaimer_title').innerHTML = `${translations.disclaimer_title}`;
             document.querySelector('#disclaimer').innerHTML = translations.disclaimer_text;
         }
+
+        document.getElementById('url').addEventListener('input', function () {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+        });
 
         $(document).ready(function () {
             changeLanguage('en');
@@ -351,6 +359,10 @@
                             if (event.data.includes('Download completed') || event.data.includes('Download failed') || event.data.includes('cant be downloaded') || event.data.includes('All videos are already downloaded')) {
                                 $('#download').prop('disabled', false);
                                 $('#cancel').hide();
+                                $('#new_subfolder_input').hide();
+                                $('#subfolder').val('');
+                                $('#custom_filename').val() = '';
+                                eventSource.close();
                                 eventSource.close();
                             }
                         };
