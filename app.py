@@ -445,7 +445,7 @@ def download():
         global complete_msg
         complete_msg = ''
         for i, url in enumerate(urls, start=1):
-            log_message(f"🔹 [{i}/{len(urls)}] Starte Download für:<br>{url}", True, True)
+            log_message(f"🔹 [{i}/{len(urls)}] Start Download for:<br>{url}", True, True)
 
             thread = threading.Thread(
                 target=download_task,
