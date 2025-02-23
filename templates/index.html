@@ -356,7 +356,7 @@
                         eventSource.onmessage = function (event) {
                             $('#progress-container').append('<div>' + event.data + '</div>');
                             $('#progress-container').scrollTop($('#progress-container')[0].scrollHeight);
-                            if (event.data.includes('Download completed') || event.data.includes('Download failed') || event.data.includes('cant be downloaded') || event.data.includes('All videos are already downloaded')) {
+                            if (event.data.includes('Download completed') || event.data.includes('Download failed') || event.data.includes('cant be downloaded')) {
                                 $('#download').prop('disabled', false);
                                 $('#cancel').hide();
                                 $('#new_subfolder_input').hide();
